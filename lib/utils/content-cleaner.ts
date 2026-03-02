@@ -13,7 +13,8 @@ export function cleanContent(html: string): string {
   
   // 모든 태그를 순회하며 허용되지 않은 태그 제거
   $('*').each((_, element) => {
-    const tagName = element.tagName?.toLowerCase();
+    const el = element as any;
+    const tagName = el.tagName?.toLowerCase();
     if (tagName && !allowedTags.includes(tagName)) {
       // 허용되지 않은 태그는 내용만 유지하고 태그는 제거
       $(element).replaceWith($(element).html() || '');
@@ -23,17 +24,20 @@ export function cleanContent(html: string): string {
   // 스크립트, 스타일, 주석 제거
   $('script, style, noscript, iframe, embed, object').remove();
   $('*').each((_, element) => {
+    const el = element as any;
     // 인라인 스타일 제거
     $(element).removeAttr('style');
     // 클래스 및 ID 제거 (필요시 유지 가능)
     $(element).removeAttr('class');
     $(element).removeAttr('id');
     // 이벤트 핸들러 제거
-    Object.keys(element.attribs || {}).forEach(attr => {
-      if (attr.startsWith('on')) {
-        $(element).removeAttr(attr);
-      }
-    });
+    if (el.attribs) {
+      Object.keys(el.attribs).forEach((attr: string) => {
+        if (attr.startsWith('on')) {
+          $(element).removeAttr(attr);
+        }
+      });
+    }
   });
 
   // img 태그의 src만 유지 (다른 속성 제거)
