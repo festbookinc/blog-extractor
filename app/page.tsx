@@ -36,7 +36,6 @@ export default function Home() {
             clearInterval(pollInterval);
 
             if (data.status === 'completed') {
-              // 결과 가져오기
               const resultResponse = await fetch(`/api/result?jobId=${jobId}`);
               if (resultResponse.ok) {
                 const result = await resultResponse.json();
@@ -44,6 +43,7 @@ export default function Home() {
                 setBlogTitle(result.blogTitle || '');
                 setBlogUrl(result.blogUrl);
               }
+              // 결과 API 실패 시에도 서버에 job이 있으면 다운로드는 될 수 있음 — 미리보기만 비움
             }
           }
         }
@@ -179,20 +179,24 @@ export default function Home() {
           </div>
         )}
 
-        {posts.length > 0 && (
+        {status?.status === 'completed' && jobId && (
           <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
               <h2 className="text-xl font-semibold">
-                추출된 포스트 ({posts.length}개)
+                {posts.length > 0
+                  ? `추출된 포스트 (${posts.length}개)`
+                  : '추출 완료'}
               </h2>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
+                  type="button"
                   onClick={handleDownload}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
                   HTML 다운로드
                 </button>
                 <button
+                  type="button"
                   onClick={handleReset}
                   className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
@@ -201,14 +205,20 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="border-t pt-4">
-              <div
-                className="prose max-w-none"
-                dangerouslySetInnerHTML={{
-                  __html: generatePreviewHTML(posts, blogTitle, blogUrl),
-                }}
-              />
-            </div>
+            {posts.length > 0 ? (
+              <div className="border-t pt-4">
+                <div
+                  className="prose max-w-none"
+                  dangerouslySetInnerHTML={{
+                    __html: generatePreviewHTML(posts, blogTitle, blogUrl),
+                  }}
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600 border-t pt-4">
+                미리보기를 불러오지 못했습니다. 위의 HTML 다운로드로 파일을 받을 수 있습니다.
+              </p>
+            )}
           </div>
         )}
       </div>
